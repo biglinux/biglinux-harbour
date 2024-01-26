@@ -1,0 +1,337 @@
+/* Copyright 2004-2005 Francesco Saverio Giudice <info@fsgiudice.com>
+ * CGI test application
+ */
+
+/* run with parameter like:
+     photo=imgs_in/conv_tst.jpg
+ */
+
+#require "hbgd"
+
+#xcommand WRITE <c> => OutStd( <c> + hb_eol() )
+
+PROCEDURE Main( ... )
+
+   LOCAL hParams := iif( PCount() > 0, GetParams( hb_AParams() ), GetVars( GetEnv( "QUERY_STRING" ) ) )
+
+   LOCAL cPar, cImg, nWidth, nHeight, cPhoto
+#if 0
+   LOCAL cText
+   LOCAL nPt
+#endif
+
+   LOCAL cSelf := hb_FNameNameExt( hb_ProgName() )
+
+   // Gestione parametri
+   FOR EACH cPar IN hParams
+
+      SWITCH cPar:__enumKey()
+      CASE "txt"
+#if 0
+         cText := cPar
+#endif
+         EXIT
+      CASE "img"
+         cImg := cPar
+         EXIT
+      CASE "photo"
+         cPhoto := cPar
+         EXIT
+      CASE "width"
+         nWidth := Val( cPar )
+         EXIT
+      CASE "height"
+         nHeight := Val( cPar )
+         EXIT
+#if 0
+      CASE "pt"
+         nPt := Val( cPar )
+         EXIT
+#endif
+      ENDSWITCH
+   NEXT
+
+   // __OutDebug( cQuery, hb_ValToExp( hParams ) )
+
+#if 0
+   hb_default( @cText, "Testo di Prova" )
+   hb_default( @nPt, 30 )
+#endif
+
+   IF cImg != NIL
+#if 0
+      OutJpg( cImg, nPt )
+#endif
+      OutPhoto( cImg, nWidth, nHeight )
+
+   ELSEIF cPhoto != NIL
+      StartHTML()
+#if 0
+      WRITE hb_ValToExp( hParams ) + "<br>"
+      WRITE hb_ValToExp( cParams ) + "<br>"
+      WRITE hb_ValToExp( cQuery ) + "<br>"
+      WRITE '<img src="' + cSelf + '?img=' + cPhoto + "&width=" + hb_ntos( nWidth ) + "&height=" + hb_ntos( nHeight ) + '" alt="pic">' + "<br>"
+#endif
+      WRITE "<table border=1>"
+      WRITE "<tr><td align='center'>"
+      WRITE '<img src="' + cSelf + '?img=' + cPhoto + '" alt="pic">' + "<br>"
+      WRITE "</td></tr>"
+      WRITE "<tr><td align='center'>"
+      WRITE '<img src="' + cSelf + '?img=' + cPhoto + ;
+         iif( HB_ISNUMERIC( nWidth ), "&width=" + hb_ntos( nWidth ), "" ) + ;
+         iif( HB_ISNUMERIC( nHeight ), "&height=" + hb_ntos( nHeight ), "" ) + ;
+         '" alt="pic">' + "<br>"
+      WRITE "</td></tr>"
+      WRITE "<tr><td align='center'>"
+      WRITE cPhoto
+      WRITE "</td></tr>"
+      WRITE "</table>"
+      WRITE "<br>"
+#if 0
+      WRITE '<img src="' + cSelf + '?img=' + cText + "_2&pt=" + hb_ntos( nPt ) + '" alt="pic">' + "<br>"
+      WRITE OS() + "<br>"
+#endif
+      EndHTML()
+   ELSE
+      StartHTML()
+      EndHTML()
+   ENDIF
+
+   RETURN
+
+STATIC PROCEDURE StartHTML( cTitle )
+
+   WRITE "content-type: text/html"
+   WRITE "Pragma: no-cache"
+   WRITE hb_eol()
+   WRITE "<!DOCTYPE html>"
+   WRITE '<html lang="en">'
+   WRITE '<meta charset="utf-8">'
+   WRITE "<title>" + hb_defaultValue( cTitle, "" ) + "</title>"
+
+   RETURN
+
+STATIC PROCEDURE EndHTML()
+   RETURN
+
+STATIC PROCEDURE OutPhoto( cPhoto, nWidth, nHeight )
+
+   LOCAL oImage := GDImage():LoadFromFile( cPhoto )
+
+   DO CASE
+   CASE HB_ISNUMERIC( nWidth ) .AND. HB_ISNUMERIC( nHeight )
+      oImage:Resize( nWidth, nHeight )
+   CASE HB_ISNUMERIC( nWidth ) .AND. ! HB_ISNUMERIC( nHeight )
+      nHeight := oImage:Height() * ( nWidth / oImage:Width() )
+      oImage:Resize( nWidth, nHeight )
+   CASE ! HB_ISNUMERIC( nWidth ) .AND. HB_ISNUMERIC( nHeight )
+      nWidth := oImage:Width() * ( nHeight / oImage:Height() )
+      oImage:Resize( nWidth, nHeight )
+   ENDCASE
+
+#if 0
+   __OutDebug( hb_DumpVar( oImage ) )
+#endif
+
+   WRITE "content-type: " + oImage:cMime + hb_eol()
+
+   SWITCH oImage:cType
+   CASE "jpeg"
+      oImage:OutputJpeg()
+      EXIT
+   CASE "gif"
+      oImage:OutputGif()
+      EXIT
+   CASE "png"
+      oImage:OutputPng()
+      EXIT
+   ENDSWITCH
+
+   RETURN
+
+STATIC PROCEDURE OutJpg( cText, nPitch )
+
+   LOCAL oI
+
+#if 0
+   LOCAL cyan
+#endif
+   LOCAL blue
+   LOCAL aSize, nWidth, nHeight, nX, nY
+
+   hb_default( @cText, "Sample TEXT" )
+   hb_default( @nPitch, 30 )
+
+   /* Create an image in memory */
+   oI := GDImage( 400, 100 )
+
+#if 0
+   /* Allocate background */
+   cyan := oI:SetColor( 0, 255, 255 )
+
+   /* Allocate drawing color */
+   blue := oI:SetColor( 0, 0, 200 )
+
+   oI:SetTransparent( blue )
+#endif
+
+   oI:SetFontName( "Arial" )
+   oI:SetFontPitch( nPitch )
+#if 0
+   __OutDebug( oI:GetFTFontHeight() )
+#endif
+   aSize := oI:GetFTStringSize( cText )
+   nWidth  := aSize[ 1 ]
+   nHeight := aSize[ 2 ]
+   nX      := aSize[ 3 ]
+   nY      := aSize[ 4 ]
+   oI:Resize( nWidth, nHeight )
+
+   /* Allocate drawing color */
+   blue := oI:SetColor( 0, 0, 200 )
+   oI:SetFontName( "Arial" )
+   oI:SetFontPitch( nPitch )
+   oI:SayFreeType( 0 - nX, 0 + nHeight - nY, cText, , , 0, blue )
+#if 0
+   oI:SayFreeType( 0, 0, cText, , , 0, blue )
+
+   oI:Resize( nWidth, nHeight )
+   __OutDebug( "prima", oI:Width(), oI:Height() )
+   oI:Resize( 60, 40 )
+   __OutDebug( "dopo", oI:Width(), oI:Height() )
+
+   oI:SetFontLarge()
+   oI:SetColor( blue )
+   oI:Say( 0, 0, cText )
+#endif
+
+   WRITE "content-type: image/jpeg" + hb_eol()
+
+   oI:OutputJpeg()
+
+   RETURN
+
+STATIC FUNCTION GetVars( cFields, cSeparator )
+
+   LOCAL hHashVars := { => }
+   LOCAL aField, cField
+   LOCAL cName, xValue
+
+   FOR EACH cField in hb_regexSplit( hb_defaultValue( cSeparator, "&" ), cFields )
+
+      IF Len( aField := hb_regexSplit( "=", cField, 2 ) ) == 2
+
+         cName  := LTrim( aField[ 1 ] )
+         xValue := UrlDecode( aField[ 2 ] )
+
+         // TraceLog( "cName, xValue", cName, xValue )
+
+         // is it an array entry?
+         IF Right( cName, 2 ) == "[]"
+            cName := hb_StrShrink( cName, 2 )
+
+            hHashVars[ cName ] := { xValue }
+         ELSE
+            hHashVars[ cName ] := xValue
+         ENDIF
+         // TraceLog( "hHashVars, cName, xValue", DumpValue( hHashVars ), cName, xValue )
+      ENDIF
+   NEXT
+   // __OutDebug( hHashVars )
+
+   RETURN hHashVars
+
+STATIC FUNCTION GetParams( aParams )
+
+   LOCAL hHashVars := { => }
+   LOCAL aField, cField
+   LOCAL cName, xValue
+
+   FOR EACH cField in aParams
+
+      IF Len( aField := hb_regexSplit( "=", cField, 2 ) ) == 2
+
+          cName  := LTrim( aField[ 1 ] )
+          xValue := UrlDecode( aField[ 2 ] )
+
+          // TraceLog( "cName, xValue", cName, xValue )
+
+          // is it an array entry?
+          IF Right( cName, 2 ) == "[]"
+             cName := hb_StrShrink( cName, 2 )
+
+             hHashVars[ cName ] := { xValue }
+          ELSE
+             hHashVars[ cName ] := xValue
+          ENDIF
+          // TraceLog( "hHashVars, cName, xValue", DumpValue( hHashVars ), cName, xValue )
+      ENDIF
+   NEXT
+   // __OutDebug( hHashVars )
+
+   RETURN hHashVars
+
+// Decoding URL
+// Can return both a string or a number
+
+STATIC FUNCTION URLDecode( cStr )
+
+   LOCAL cRet := "", i, cCar
+
+#if 0
+   LOCAL lNumeric := .T.
+#endif
+
+   FOR i := 1 TO Len( cStr )
+
+      cCar := SubStr( cStr, i, 1 )
+
+      DO CASE
+      CASE cCar == "+"
+         cRet += " "
+      CASE cCar == "%"
+         i++
+         cRet += Chr( hb_HexToNum( SubStr( cStr, i++, 2 ) ) )
+      OTHERWISE
+         cRet += cCar
+      ENDCASE
+
+#if 0
+      IF ( SubStr( cRet, i, 1 ) > "9" .OR. SubStr( cRet, i, 1 ) < "0" ) .AND. ! SubStr( cRet, i, 1 ) == "."
+         lNumeric := .F.
+      ENDIF
+#endif
+   NEXT
+
+#if 0
+   IF lNumeric
+      cRet := Val( cRet )
+   ENDIF
+#endif
+
+   RETURN cRet
+
+STATIC FUNCTION URLEncode( cStr )
+
+   LOCAL cRet := "", i, nVal, cCar
+
+   FOR i := 1 TO Len( cStr )
+
+      cCar := SubStr( cStr, i, 1 )
+
+      DO CASE
+      CASE cCar == " "
+         cRet += "+"
+      CASE cCar >= "A" .AND. cCar <= "Z"
+         cRet += cCar
+      CASE cCar >= "a" .AND. cCar <= "z"
+         cRet += cCar
+      CASE cCar >= "0" .AND. cCar <= "9"
+         cRet += cCar
+      OTHERWISE
+         nVal := Asc( cCar )
+         cRet += "%" + hb_NumToHex( nVal )
+      ENDCASE
+   NEXT
+
+   RETURN cRet
