@@ -1,7 +1,7 @@
-# Maintainer: Barnabé di Kartola <barnabedikartola@gmail.com>
+# Maintainer: Vilmar Catafesta <vcatafesta@gmail.com>
 
-pkgname=biglinux-package-template
-pkgdesc="Package template for biglinux"
+pkgname=biglinux-harbour
+pkgdesc="Harbour is the open/free software implementation of a cross-platform, multi-threading, object-oriented, scriptable programming language"
 # depends=('')
 # makedepends=('')
 # conflicts=('')
