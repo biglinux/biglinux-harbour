@@ -1,15 +1,17 @@
 # Maintainer: Vilmar Catafesta <vcatafesta@gmail.com>
 
-pkgname=biglinux-harbour
+pkgname=biglinux-harbour-bin
 pkgdesc="Harbour is the open/free software implementation of a cross-platform, multi-threading, object-oriented, scriptable programming language"
 # depends=('')
 # makedepends=('')
 # conflicts=('')
-pkgver=$(date +%y.%m.%d)
-pkgrel=$(date +%H%M)
-arch=('any')
+#pkgver=$(date +%y.%m.%d)
+#pkgrel=$(date +%H%M)
+pkgver=3.4
+pkgrel=1
+arch=('x86_64')
 license=('GPL3')
-url="https://github.com/biglinux/$pkgname"
+url="https://github.com/biglinux/biglinux-harbour"
 provides=("$pkgname")
 source=("git+${url}.git")
 md5sums=('SKIP')
